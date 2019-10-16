@@ -140,7 +140,7 @@ class SpectralFits(object):
                     # Setup and pre-processing.
                     self._set_active_spectrum(spectrum)
                     if self._helio_correction:
-                        self._apply_heliocentric_correction()
+                        self._apply_heliocentric_correction(template.sky_coord)
                     if self._continuum_normalisation:
                         self._apply_continuum_normalisation()
 
@@ -376,14 +376,14 @@ class SpectralFits(object):
             self.active_data['Flux'] = f
             self.active_data['FluxError'] = fe
 
-    def _apply_heliocentric_correction(self):
+    def _apply_heliocentric_correction(self, _sky_coord):
         """ Apply heliocentric correction for the active spectrum. """
         # Archive original wavelength values.
         self.active_data.rename(index=str, columns={
             'Wavelength': 'WavelengthOriginal'}, inplace=True)
 
         # Get sky coordinates.
-        c = SkyCoord(self.instrument.sky_coord, unit=(u.hourangle, u.deg))
+        c = SkyCoord(_sky_coord, unit=(u.hourangle, u.deg))
 
         # Calculate heliocentric velocity correction.
         # Up to 3 m/s precision.
