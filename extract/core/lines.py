@@ -202,7 +202,8 @@ class SpectralFits(object):
                 # Setup and pre-processing.
                 self._set_active_spectrum(spec_fits.iloc[0])
                 if spec_fits['HelioCorrection'].iloc[0] == 1:
-                    self._apply_heliocentric_correction()
+                    self._apply_heliocentric_correction(
+                        spec_fits['SkyCoordinate'].iloc[0])
                 if spec_fits['ContinuumNormalisation'].iloc[0] == 1:
                     self._apply_continuum_normalisation()
 
