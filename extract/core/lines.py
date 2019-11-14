@@ -260,51 +260,50 @@ class SpectralFits(object):
         spectral_fits = pd.read_sql_query(query, connection)
         connection.close()
 
-        if isinstance(comp_number, list):
-            # Weighted mean.
-            tracking_fits = spectral_fits.loc[
-                spectral_fits['ComponentNumber'].isin(comp_number)].copy()
-            w_mean, w_mean_error = multi_component_weighted_mean(
-                tracking_fits, comp_number)
-
-            # Reduce dataset to one row per spectrum.
-            spectral_fits = spectral_fits.groupby(['JD']).first().reset_index()
-            spectral_fits.drop(columns=[
-                'Mean', 'MeanError',
-                'StandardDeviation', 'StandardDeviationError',
-                'Amplitude', 'AmplitudeError'], inplace=True)
-            spectral_fits['Mean'] = w_mean
-            spectral_fits['MeanError'] = w_mean_error
-            spectral_fits['ComponentNumber'] = 0
-            comp_number = 0
-
-        elif comp_number is None:
-            # No components i.e bhm method.
-            spectral_fits['ComponentNumber'] = 0
-            comp_number = 0
-
-        spectral_fits = spectral_fits.loc[
-            spectral_fits['ComponentNumber'] == comp_number].copy()
-
         # Float and sort by JD.
         spectral_fits['JD'] = spectral_fits['JD'].astype('float')
         spectral_fits = spectral_fits.sort_values(
             by=['JD'], ascending=True)
 
+        if isinstance(comp_number, list):
+            # Select components.
+            tracking_fits = spectral_fits.loc[
+                spectral_fits['ComponentNumber'].isin(comp_number)].copy()
+
+            # Reduce redundant data.
+            dynamical_comp = tracking_fits.drop_duplicates(
+                'JD', keep='first').copy().reset_index()
+            dynamical_comp.drop(columns=[
+                'Mean', 'MeanError',
+                'StandardDeviation', 'StandardDeviationError',
+                'Amplitude', 'AmplitudeError'], inplace=True)
+
+            # Calc weighted mean by area.
+            dynamical_comp['Mean'], dynamical_comp['MeanError'] = \
+                multi_component_weighted_mean(tracking_fits, comp_number)
+
+        elif isinstance(comp_number, int):
+            # Select component.
+            dynamical_comp = spectral_fits.loc[
+                spectral_fits['ComponentNumber'] == comp_number].copy()
+
+        else:
+            raise ValueError('Component specification not recognised.')
+
         # Pre-calculate velocity.
-        spectral_fits['Velocity'] = calculate_velocity(
-            spectral_fits['Mean'], lab_wavelength)
+        dynamical_comp['Velocity'] = calculate_velocity(
+            dynamical_comp['Mean'], lab_wavelength)
 
         # Pre-calculate velocity error.
         statistical_fits_object = StatisticalFits()
-        spectral_fits['VelocityError'] = \
+        dynamical_comp['VelocityError'] = \
             statistical_fits_object.determine_radial_velocity_errors(
-                spectral_fits, velocity_error, lab_wavelength)
+                dynamical_comp, velocity_error, lab_wavelength)
 
         # Save.
         print('Pickling {} fits as velocities to {}'.format(
             table, pickle_path))
-        pickle.dump(spectral_fits, open(pickle_path, 'wb'))
+        pickle.dump(dynamical_comp, open(pickle_path, 'wb'))
 
     def _set_active_spectrum(self, _spectrum_series):
         """ Set active spectrum. """
