@@ -1004,7 +1004,9 @@ class SpectralFits(object):
             single_comp_df = tracking_fits.drop_duplicates(
                 'JD', keep='first').copy().reset_index()
             single_comp_df['markersize'] = single_comp_df['FilePath'].apply(
-                lambda f: 5 if f == self.active_spectrum['FilePath'] else 1)
+                lambda f: 10 if f == self.active_spectrum['FilePath'] else 1)
+            single_comp_df['markercolour'] = single_comp_df['FilePath'].apply(
+                lambda f: 'red' if f == self.active_spectrum['FilePath'] else 'black')
 
             # Calc weighted mean by area.
             if not self._cached_plotting_data:
@@ -1012,8 +1014,10 @@ class SpectralFits(object):
                     tracking_fits, track_fit)
 
             # Draw.
-            ax2.scatter(single_comp_df['JD'], self._cached_plotting_data[0],
-                        color='#000000', s=single_comp_df['markersize'].values)
+            ax2.scatter(
+                single_comp_df['JD'], self._cached_plotting_data[0],
+                s=single_comp_df['markersize'],
+                color=single_comp_df['markercolour'])
             ax2.set_xlabel('JD')
             ax2.set_ylabel('Weighted Mean')
 
@@ -1154,7 +1158,9 @@ class SpectralFits(object):
         tracking_fits = self.spectral_fits.loc[
             self.spectral_fits['ComponentNumber'] == comp_s].copy()
         tracking_fits['markersize'] = tracking_fits['FilePath'].apply(
-            lambda f: 5 if f == self.active_spectrum['FilePath'] else 1)
+            lambda f: 10 if f == self.active_spectrum['FilePath'] else 1)
+        tracking_fits['markercolour'] = tracking_fits['FilePath'].apply(
+            lambda f: 'red' if f == self.active_spectrum['FilePath'] else 'black')
 
         # Calc EW.
         tracking_fits['EquivalentWidth'] = tracking_fits['Amplitude'] \
@@ -1165,7 +1171,8 @@ class SpectralFits(object):
         for axis, param in zip(ax_list, param_list):
             axis.scatter(
                 tracking_fits['JD'], tracking_fits[param],
-                s=tracking_fits['markersize'], color=colour)
+                s=tracking_fits['markersize'],
+                color=tracking_fits['markercolour'])
             axis.set_xlabel('JD')
             axis.set_ylabel(param)
 
