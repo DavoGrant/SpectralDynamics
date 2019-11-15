@@ -1290,20 +1290,6 @@ class SpectralFits(object):
             print(self.active_spectrum['JD'])
             print(comp_params_df[['ComponentNumber', 'Mean',
                                   'StandardDeviation', 'Amplitude']])
-            try:
-                track_fit = [1, 2, 3, 4]
-                tracking_fits = pd.DataFrame()
-                for c in track_fit:
-                    tf = self.spectral_fits.loc[
-                        self.spectral_fits['ComponentNumber'] == c].copy()
-                    tracking_fits = pd.concat(
-                        [tracking_fits, tf], ignore_index=False)
-                w_mean, w_mean_error = multi_component_weighted_mean(
-                    tracking_fits, track_fit)
-                print(w_mean)
-            except IndexError as err:
-                print('Warning: diagnostics attempting weighted '
-                      'mean of unknown components.')
 
     def _interim_point_storing(self, __template):
         """ Store model points. """
