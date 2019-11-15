@@ -1004,22 +1004,16 @@ class SpectralFits(object):
             single_comp_df = tracking_fits.drop_duplicates(
                 'JD', keep='first').copy().reset_index()
             single_comp_df['markersize'] = single_comp_df['FilePath'].apply(
-                lambda f: '5' if f == self.active_spectrum['FilePath'] else '1')
+                lambda f: 5 if f == self.active_spectrum['FilePath'] else 1)
 
             # Calc weighted mean by area.
-            single_comp_df['w_mean'], single_comp_df['w_mean_error'] = \
-                multi_component_weighted_mean(tracking_fits, track_fit)
+            if not self._cached_plotting_data:
+                self._cached_plotting_data = multi_component_weighted_mean(
+                    tracking_fits, track_fit)
 
             # Draw.
-            for i, fit in single_comp_df.iterrows():
-                markers, caps, bars = ax2.errorbar(
-                    fit['JD'], fit['w_mean'],
-                    yerr=None, color='#000000', fmt='o',
-                    markersize=fit['markersize'],
-                    elinewidth=1, capsize=2, capthick=1)
-                [bar.set_alpha(0.2) for bar in bars]
-                [cap.set_alpha(0.2) for cap in caps]
-
+            ax2.scatter(single_comp_df['JD'], self._cached_plotting_data[0],
+                        color='#000000', s=single_comp_df['markersize'].values)
             ax2.set_xlabel('JD')
             ax2.set_ylabel('Weighted Mean')
 
@@ -1160,7 +1154,7 @@ class SpectralFits(object):
         tracking_fits = self.spectral_fits.loc[
             self.spectral_fits['ComponentNumber'] == comp_s].copy()
         tracking_fits['markersize'] = tracking_fits['FilePath'].apply(
-            lambda f: '5' if f == self.active_spectrum['FilePath'] else '1')
+            lambda f: 5 if f == self.active_spectrum['FilePath'] else 1)
 
         # Calc EW.
         tracking_fits['EquivalentWidth'] = tracking_fits['Amplitude'] \
@@ -1169,15 +1163,9 @@ class SpectralFits(object):
 
         # Draw.
         for axis, param in zip(ax_list, param_list):
-            for i, fit in tracking_fits.iterrows():
-                markers, caps, bars = axis.errorbar(
-                    fit['JD'], fit[param],
-                    yerr=None, color=colour, fmt='o',
-                    markersize=fit['markersize'],
-                    elinewidth=1, capsize=2, capthick=1)
-                [bar.set_alpha(0.2) for bar in bars]
-                [cap.set_alpha(0.2) for cap in caps]
-
+            axis.scatter(
+                tracking_fits['JD'], tracking_fits[param],
+                s=tracking_fits['markersize'], color=colour)
             axis.set_xlabel('JD')
             axis.set_ylabel(param)
 
