@@ -1160,7 +1160,7 @@ class SpectralFits(object):
         tracking_fits['markersize'] = tracking_fits['FilePath'].apply(
             lambda f: 10 if f == self.active_spectrum['FilePath'] else 1)
         tracking_fits['markercolour'] = tracking_fits['FilePath'].apply(
-            lambda f: 'red' if f == self.active_spectrum['FilePath'] else 'black')
+            lambda f: 'red' if f == self.active_spectrum['FilePath'] else colour)
 
         # Calc EW.
         tracking_fits['EquivalentWidth'] = tracking_fits['Amplitude'] \
@@ -1312,6 +1312,11 @@ class SpectralFits(object):
 
     def _saving_fits(self):
         """ Save fits to database. """
+        # Check if any fits completed.
+        if len(self.spectral_fits) == 0:
+            print('No fits made for this chunk.')
+            return
+
         for temp_idx, template in enumerate(self._templates):
 
             # Locate all fits for given template.
