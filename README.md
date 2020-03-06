@@ -18,4 +18,6 @@ spectroscopy of astrophysical targets.
 /analytics : example usage of the extract API<br>
 
 ## Publication
-The associated paper is currently under review: (future MNRAS, arxiv links).
+The associated paper is available at:<br>
+https://arxiv.org/abs/2003.02783<br>
+MNRAS_LINK<br>
